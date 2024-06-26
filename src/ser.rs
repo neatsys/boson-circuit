@@ -1,76 +1,80 @@
 use plonky2::field::extension::Extendable;
 // use plonky2::field::secp256k1_base::Secp256K1Base;
 // use plonky2::field::secp256k1_scalar::Secp256K1Scalar;
-use plonky2::gates::arithmetic_base::ArithmeticGate;
-use plonky2::gates::arithmetic_extension::ArithmeticExtensionGate;
-use plonky2::gates::base_sum::BaseSumGate;
-use plonky2::gates::constant::ConstantGate;
-use plonky2::gates::coset_interpolation::CosetInterpolationGate;
-use plonky2::gates::exponentiation::ExponentiationGate;
-use plonky2::gates::lookup::LookupGate;
-use plonky2::gates::lookup_table::LookupTableGate;
-use plonky2::gates::multiplication_extension::MulExtensionGate;
-use plonky2::gates::noop::NoopGate;
-use plonky2::gates::poseidon::PoseidonGate;
-use plonky2::gates::poseidon_mds::PoseidonMdsGate;
-use plonky2::gates::public_input::PublicInputGate;
-use plonky2::gates::random_access::RandomAccessGate;
-use plonky2::gates::reducing::ReducingGate;
-use plonky2::gates::reducing_extension::ReducingExtensionGate;
-use plonky2::get_gate_tag_impl;
 use plonky2::hash::hash_types::RichField;
-use plonky2::impl_gate_serializer;
 use plonky2::iop::generator::SimpleGenerator as _;
 use plonky2::iop::generator::WitnessGeneratorRef;
-use plonky2::plonk::circuit_data::CircuitConfig;
-use plonky2::plonk::circuit_data::CircuitData;
-use plonky2::plonk::config::PoseidonGoldilocksConfig;
-use plonky2::plonk::proof::ProofWithPublicInputs;
-use plonky2::read_gate_impl;
-use plonky2::util::serialization::GateSerializer;
 use plonky2::util::serialization::IoError;
 use plonky2::util::serialization::Read;
 use plonky2::util::serialization::Write;
-use plonky2_u32::gates::add_many_u32::U32AddManyGate;
-use plonky2_u32::gates::arithmetic_u32::U32ArithmeticGate;
-use plonky2_u32::gates::comparison::ComparisonGate;
-use plonky2_u32::gates::range_check_u32::U32RangeCheckGate;
-use plonky2_u32::gates::subtraction_u32::U32SubtractionGate;
 
-#[derive(Debug)]
-pub struct DefaultGateSerializer;
-impl<F: RichField + Extendable<D>, const D: usize> GateSerializer<F, D> for DefaultGateSerializer {
-    impl_gate_serializer! {
-        DefaultGateSerializer,
-        ArithmeticGate,
-        ArithmeticExtensionGate<D>,
-        BaseSumGate<2>,
-        BaseSumGate<4>,
-        ComparisonGate<F, D>,
-        ConstantGate,
-        CosetInterpolationGate<F, D>,
-        ExponentiationGate<F, D>,
-        LookupGate,
-        LookupTableGate,
-        MulExtensionGate<D>,
-        NoopGate,
-        PoseidonMdsGate<F, D>,
-        PoseidonGate<F, D>,
-        PublicInputGate,
-        RandomAccessGate<F, D>,
-        ReducingExtensionGate<D>,
-        ReducingGate<D>,
-        U32AddManyGate<F, D>,
-        U32ArithmeticGate<F, D>,
-        U32RangeCheckGate<F, D>,
-        U32SubtractionGate<F, D>
-    }
-}
+// use plonky2::plonk::circuit_data::CircuitConfig;
+// use plonky2::plonk::circuit_data::CircuitData;
+// use plonky2::plonk::config::PoseidonGoldilocksConfig;
+// use plonky2::plonk::proof::ProofWithPublicInputs;
+
+// use plonky2::gates::arithmetic_base::ArithmeticGate;
+// use plonky2::gates::arithmetic_extension::ArithmeticExtensionGate;
+// use plonky2::gates::base_sum::BaseSumGate;
+// use plonky2::gates::constant::ConstantGate;
+// use plonky2::gates::coset_interpolation::CosetInterpolationGate;
+// use plonky2::gates::exponentiation::ExponentiationGate;
+// use plonky2::gates::lookup::LookupGate;
+// use plonky2::gates::lookup_table::LookupTableGate;
+// use plonky2::gates::multiplication_extension::MulExtensionGate;
+// use plonky2::gates::noop::NoopGate;
+// use plonky2::gates::poseidon::PoseidonGate;
+// use plonky2::gates::poseidon_mds::PoseidonMdsGate;
+// use plonky2::gates::public_input::PublicInputGate;
+// use plonky2::gates::random_access::RandomAccessGate;
+// use plonky2::gates::reducing::ReducingGate;
+// use plonky2::gates::reducing_extension::ReducingExtensionGate;
+// use plonky2::get_gate_tag_impl;
+// use plonky2::impl_gate_serializer;
+// use plonky2::read_gate_impl;
+// use plonky2::util::serialization::GateSerializer;
+// use plonky2_u32::gates::add_many_u32::U32AddManyGate;
+// use plonky2_u32::gates::arithmetic_u32::U32ArithmeticGate;
+// use plonky2_u32::gates::comparison::ComparisonGate;
+// use plonky2_u32::gates::range_check_u32::U32RangeCheckGate;
+// use plonky2_u32::gates::subtraction_u32::U32SubtractionGate;
+
+// disable for now because requires `log` crate for macro expansion
+// and i don't need (de)serialize now
+// #[derive(Debug)]
+// pub struct DefaultGateSerializer;
+// impl<F: RichField + Extendable<D>, const D: usize> GateSerializer<F, D> for DefaultGateSerializer {
+//     impl_gate_serializer! {
+//         DefaultGateSerializer,
+//         ArithmeticGate,
+//         ArithmeticExtensionGate<D>,
+//         BaseSumGate<2>,
+//         BaseSumGate<4>,
+//         ComparisonGate<F, D>,
+//         ConstantGate,
+//         CosetInterpolationGate<F, D>,
+//         ExponentiationGate<F, D>,
+//         LookupGate,
+//         LookupTableGate,
+//         MulExtensionGate<D>,
+//         NoopGate,
+//         PoseidonMdsGate<F, D>,
+//         PoseidonGate<F, D>,
+//         PublicInputGate,
+//         RandomAccessGate<F, D>,
+//         ReducingExtensionGate<D>,
+//         ReducingGate<D>,
+//         U32AddManyGate<F, D>,
+//         U32ArithmeticGate<F, D>,
+//         U32RangeCheckGate<F, D>,
+//         U32SubtractionGate<F, D>
+//     }
+// }
 
 use plonky2::plonk::config::{AlgebraicHasher, GenericConfig};
 use plonky2::util::serialization::WitnessGeneratorSerializer;
 
-use crate::ClockCircuit;
+// use crate::ClockCircuit;
 
 #[derive(Debug, Default)]
 pub struct DefaultGeneratorSerializer<C: GenericConfig<D>, const D: usize> {
@@ -356,36 +360,36 @@ where
     }
 }
 
-impl<const S: usize> crate::ClockCircuit<S> {
-    pub fn to_bytes(&self) -> anyhow::Result<Vec<u8>> {
-        self.data
-            .to_bytes(
-                &DefaultGateSerializer,
-                &DefaultGeneratorSerializer::<PoseidonGoldilocksConfig, { crate::D }>::default(),
-            )
-            .map_err(anyhow::Error::msg)
-    }
-}
+// impl<const S: usize> crate::ClockCircuit<S> {
+//     pub fn to_bytes(&self) -> anyhow::Result<Vec<u8>> {
+//         self.data
+//             .to_bytes(
+//                 &DefaultGateSerializer,
+//                 &DefaultGeneratorSerializer::<PoseidonGoldilocksConfig, { crate::D }>::default(),
+//             )
+//             .map_err(anyhow::Error::msg)
+//     }
+// }
 
 impl<const S: usize> crate::Clock<S> {
     pub fn to_bytes(&self) -> Vec<u8> {
         self.proof.to_bytes()
     }
 
-    pub fn from_bytes(
-        clock_bytes: Vec<u8>,
-        circuit_bytes: &[u8],
-        config: CircuitConfig,
-    ) -> anyhow::Result<(Self, crate::ClockCircuit<S>)> {
-        let data = CircuitData::from_bytes(
-            circuit_bytes,
-            &DefaultGateSerializer,
-            &DefaultGeneratorSerializer::<PoseidonGoldilocksConfig, { crate::D }>::default(),
-        )
-        .map_err(anyhow::Error::msg)?;
-        let clock = Self {
-            proof: ProofWithPublicInputs::from_bytes(clock_bytes, &data.common)?,
-        };
-        Ok((clock, ClockCircuit::with_data(data, config)))
-    }
+    // pub fn from_bytes(
+    //     clock_bytes: Vec<u8>,
+    //     circuit_bytes: &[u8],
+    //     config: CircuitConfig,
+    // ) -> anyhow::Result<(Self, crate::ClockCircuit<S>)> {
+    //     let data = CircuitData::from_bytes(
+    //         circuit_bytes,
+    //         &DefaultGateSerializer,
+    //         &DefaultGeneratorSerializer::<PoseidonGoldilocksConfig, { crate::D }>::default(),
+    //     )
+    //     .map_err(anyhow::Error::msg)?;
+    //     let clock = Self {
+    //         proof: ProofWithPublicInputs::from_bytes(clock_bytes, &data.common)?,
+    //     };
+    //     Ok((clock, ClockCircuit::with_data(data, config)))
+    // }
 }

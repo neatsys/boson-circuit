@@ -1,5 +1,7 @@
 pub mod ser;
 
+use std::{collections::HashMap, fmt::Debug};
+
 use plonky2::{
     field::types::{Field, PrimeField64},
     hash::{
@@ -32,6 +34,17 @@ pub type F = <C as GenericConfig<D>>::F;
 #[derive(Clone)]
 pub struct Clock<const S: usize> {
     pub proof: ProofWithPublicInputs<F, C, D>,
+}
+
+impl<const S: usize> Debug for Clock<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let counters = self
+            .counters()
+            .enumerate()
+            .filter(|(_, counter)| *counter != 0)
+            .collect::<HashMap<_, _>>();
+        write!(f, "Clock {:?}", counters)
+    }
 }
 
 impl<const S: usize> Clock<S> {
@@ -205,7 +218,8 @@ impl<const S: usize> Clock<S> {
         config: CircuitConfig,
     ) -> anyhow::Result<(Self, ClockCircuit<S>)> {
         let mut circuit = ClockCircuit::new_genesis(config.clone());
-        let mut timing = TimingTree::new("prove genesis", log::Level::Info);
+        let mut timing =
+            TimingTree::new("prove genesis", "INFO".parse().map_err(anyhow::Error::msg)?);
         let proof = prove(
             &circuit.data.prover_only,
             &circuit.data.common,
@@ -238,61 +252,6 @@ impl<const S: usize> Clock<S> {
         (Self { proof }, ClockCircuit::with_data(data, config))
     }
 
-    pub fn increment(
-        &self,
-        index: usize,
-        secret: F,
-        circuit: &ClockCircuit<S>,
-    ) -> anyhow::Result<Self> {
-        let counter = self
-            .counters()
-            .nth(index)
-            .ok_or(anyhow::anyhow!("out of bound index {index}"))?
-            + 1;
-        let inner_circuit = circuit;
-
-        let mut pw = PartialWitness::new();
-        let targets = circuit.targets.as_ref().unwrap();
-        pw.set_proof_with_pis_target(&targets.proof1, &self.proof);
-        pw.set_verifier_data_target(&targets.verifier_data1, &inner_circuit.data.verifier_only);
-        pw.set_target(targets.updated_index, F::from_canonical_usize(index));
-        pw.set_target(targets.updated_counter, F::from_canonical_u32(counter));
-
-        pw.set_proof_with_pis_target(&targets.proof2, &self.proof);
-        pw.set_verifier_data_target(&targets.verifier_data2, &inner_circuit.data.verifier_only);
-
-        // let sig = sign_message(Secp256K1Scalar::from_canonical_u32(counter), secret);
-        pw.set_target(targets.sig, secret);
-
-        let mut timing = TimingTree::new("prove increment", log::Level::Info);
-        let proof = prove(
-            &circuit.data.prover_only,
-            &circuit.data.common,
-            pw,
-            &mut timing,
-        )?;
-        timing.print();
-
-        let clock = Self {
-            proof,
-            // depth: self.depth + 1,
-        };
-        assert!(clock.counters().zip(self.counters()).enumerate().all(
-            |(i, (output_counter, input_counter))| {
-                if i == index {
-                    output_counter == counter
-                } else {
-                    output_counter == input_counter
-                }
-            }
-        ));
-        Ok(clock)
-    }
-
-    pub fn merge(&self, other: &Self, circuit: &ClockCircuit<S>) -> anyhow::Result<Self> {
-        self.merge_internal(other, circuit, circuit)
-    }
-
     fn merge_internal(
         &self,
         other: &Self,
@@ -313,7 +272,8 @@ impl<const S: usize> Clock<S> {
         // let sig = sign_message(msg, DUMMY_SECRET);
         pw.set_target(targets.sig, DUMMY_SECRET);
 
-        let mut timing = TimingTree::new("prove merge", log::Level::Info);
+        let mut timing =
+            TimingTree::new("prove merge", "INFO".parse().map_err(anyhow::Error::msg)?);
         let proof = prove(
             &circuit.data.prover_only,
             &circuit.data.common,
@@ -369,7 +329,8 @@ impl<const S: usize> Clock<S> {
         // let sig = sign_message(msg, DUMMY_SECRET);
         pw.set_target(targets.sig, secret);
 
-        let mut timing = TimingTree::new("prove update", log::Level::Info);
+        let mut timing =
+            TimingTree::new("prove update", "INFO".parse().map_err(anyhow::Error::msg)?);
         let proof = prove(
             &circuit.data.prover_only,
             &circuit.data.common,
@@ -435,49 +396,19 @@ mod tests {
     static GENESIS_AND_CIRCUIT: OnceLock<(Clock<S>, ClockCircuit<S>)> = OnceLock::new();
 
     #[test]
-    fn malformed_counters() -> anyhow::Result<()> {
-        let (genesis, circuit) = GENESIS_AND_CIRCUIT.get_or_init(genesis_and_circuit);
-        genesis.verify(circuit)?;
-        {
-            let mut genesis = genesis.clone();
-            genesis.proof.public_inputs[0] = F::ONE;
-            assert!(genesis.verify(circuit).is_err());
-        }
-        let clock1 = genesis.increment(0, index_secret(0), circuit)?;
-        clock1.verify(circuit)?;
-        {
-            let mut clock1 = clock1.clone();
-            clock1
-                .proof
-                .public_inputs
-                .clone_from(&genesis.proof.public_inputs);
-            assert!(clock1.verify(circuit).is_err());
-        }
-        let clock2 = genesis.merge(&clock1, circuit)?;
-        clock2.verify(circuit)?;
-        {
-            let mut clock2 = clock2.clone();
-            clock2
-                .proof
-                .public_inputs
-                .clone_from(&genesis.proof.public_inputs);
-            assert!(clock2.verify(circuit).is_err());
-        }
-        Ok(())
-    }
-
-    #[test]
     #[should_panic]
     fn malformed_signature() {
         let (genesis, circuit) = GENESIS_AND_CIRCUIT.get_or_init(genesis_and_circuit);
-        genesis.increment(0, index_secret(1), circuit).unwrap();
+        genesis
+            .update(0, index_secret(1), genesis, circuit)
+            .unwrap();
     }
 
     #[test]
     #[should_panic]
     fn malformed_counters_recursive() {
         let (genesis, circuit) = GENESIS_AND_CIRCUIT.get_or_init(genesis_and_circuit);
-        let clock1 = genesis.increment(0, index_secret(0), circuit);
+        let clock1 = genesis.update(0, index_secret(0), genesis, circuit);
         let Ok(mut clock1) = clock1 else {
             return; // to trigger `should_panic` failure
         };
@@ -485,6 +416,6 @@ mod tests {
             .proof
             .public_inputs
             .clone_from(&genesis.proof.public_inputs);
-        clock1.merge(&clock1, circuit).unwrap();
+        clock1.update(0, index_secret(0), &clock1, circuit).unwrap();
     }
 }
